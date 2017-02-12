@@ -37,21 +37,12 @@ import okhttp3.Response;
 
 public class ResultsActivity extends Activity {
 
-	/*
-	 * data name 	课程名称
-	 * 		credit 	学分
-	 * 		grade	成绩
-	 * 		jd		绩点
-	 * 		type	0.及格
-	 * 				1.尚不及格
-	 * 				2.曾不及格
-	 * 				3.体育
-	 */
-	private List<Map<String, String>> data=new ArrayList<Map<String, String>>();
+	private List<Map<String, String>> data;
 	private String username;
 	private String password;
 	private ListView listView;
 	private TextView tv_info;
+	private CourseManage courseManage=new CourseManage();
 	public OkHttpClient client = new OkHttpClient.Builder()
 			.cookieJar(new CookieJar() {  
 			    private final HashMap<String, List<Cookie>> cookieStore = new HashMap<String, List<Cookie>>();  
@@ -73,14 +64,9 @@ public class ResultsActivity extends Activity {
 		@Override
 		public void handleMessage(Message msg){
 			if(msg.what==1){
-				SimpleAdapter adapter=new SimpleAdapter(ResultsActivity.this, data, R.layout.item, new String[]{"name","credit","grade","jd"}, new int[]{R.id.courseName,R.id.xf,R.id.cj,R.id.jd});
+				data=courseManage.getData();
+				SimpleAdapter adapter=new SimpleAdapter(ResultsActivity.this,data , R.layout.item, new String[]{"name","credit","grade","jd"}, new int[]{R.id.courseName,R.id.xf,R.id.cj,R.id.jd});
 				listView.setAdapter(adapter);
-				try {
-					getInfo();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
 			}
 		}
 	};
@@ -155,23 +141,7 @@ public class ResultsActivity extends Activity {
                 Document document=Jsoup.parse(response.body().string());
                 Elements tr=document.select("tr.odd");
                 for (Element element : tr) {
-                	Elements td=element.select("td");
-                	Map<String, String> m=new HashMap<String, String>();
-                	m.put("name", td.get(2).text());
-                	m.put("credit", td.get(4).text());
-                	m.put("grade", td.get(6).text());
-                	if(!td.get(2).text().contains("大学体育")){
-                		try {
-                			String jd=getPassedJD(Double.parseDouble(filter(td.get(6).text())));
-                			m.put("jd","绩点:"+jd);
-                			m.put("jd_d", jd);
-                			m.put("type", "0");
-						} catch (Exception e) {
-						}
-                	}else{
-                		m.put("type", "3");
-                	}
-                	data.add(m);
+                	courseManage.add_passed(element);
 				}
                 getUnpassedGrade();
             }
@@ -193,27 +163,7 @@ public class ResultsActivity extends Activity {
                 Document document=Jsoup.parse(response.body().string());
                 Elements tr=document.select("tr.odd");
                 for (Element element : tr) {
-                	Elements td=element.select("td");
-                	Map<String, String> m=new HashMap<String, String>();
-                	m.put("name", td.get(2).text());
-                	m.put("credit", td.get(4).text());
-                	m.put("grade", td.get(6).text());
-                	if(!td.get(2).text().contains("大学体育")){
-                		try {
-                			String jd=getUnpassedJD(Double.parseDouble(filter(td.get(6).text())));
-                			m.put("jd","绩点:"+jd);
-                			m.put("jd_d", jd);
-                			if("0.0".equals(jd)){
-                				m.put("type", "1");
-                			}else if("1.0".equals(jd)){
-                				m.put("type", "2");
-                			}
-						} catch (Exception e) {						
-						}               		
-                	}else{
-                		m.put("type", "3");
-                	}
-                	data.add(m);
+                	courseManage.add_unpassed(element);
 				}
                 getUnpublishedGrade();
             }
@@ -235,15 +185,7 @@ public class ResultsActivity extends Activity {
                 Document document=Jsoup.parse(response.body().string());
                 Elements tr=document.select("tr.odd");
                 for (Element element : tr) {
-                	Elements td=element.select("td");
-                	if(!td.get(6).hasText()){
-                		Map<String, String> m=new HashMap<String, String>();
-                    	m.put("name", td.get(2).text());
-                    	m.put("credit", td.get(4).text());
-                    	m.put("grade","未发布");
-                    	data.add(m);
-                	}
-                	
+                	courseManage.add_unpublished(element);            	
 				}
                 Message msg=mHandler.obtainMessage();
                 msg.what=1;
@@ -252,34 +194,6 @@ public class ResultsActivity extends Activity {
         });
 	}
 
-	protected String getUnpassedJD(double grade) {
-		if(grade>=60)return "1.0";
-		else return "0.0";
-	}
-
-	private String getPassedJD(double grade){
-		if(grade>=90){
-			return "4.0";
-		}else if(grade>=85){
-			return "3.7";
-		}else if(grade>=82){
-			return "3.3";
-		}else if(grade>=78){
-			return "3.0";
-		}else if(grade>=75){
-			return "2.7";
-		}else if(grade>=72){
-			return "2.3";
-		}else if(grade>=68){
-			return "2.0";
-		}else if(grade>=65){
-			return "1.7";
-		}else if(grade>=62){
-			return "1.3";
-		}else{
-			return "1.0";
-		}
-	}
 	
 	private void getInfo() throws Exception {
 		//define
@@ -324,12 +238,4 @@ public class ResultsActivity extends Activity {
 		String info="总学分:"+creditSum+" 已修读学分:"+creditPassed+" 平均绩点:"+decimalFormat.format(GPA);
 		tv_info.setText(info);
 	}
-	
-	private String filter(String s){
-		Pattern p = Pattern.compile("\\s*|\t|\r|\n");  
-        Matcher m = p.matcher(s);  
-        String str1 = m.replaceAll(""); 
-        return str1;
-	}
-
 }
