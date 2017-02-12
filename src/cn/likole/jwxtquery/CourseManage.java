@@ -1,5 +1,6 @@
 package cn.likole.jwxtquery;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +44,7 @@ public class CourseManage {
 			Course course=new Course();
 			course.setCourseName(td.get(2).text());
 			course.setCredit(td.get(4).text());
+			course.unpublish();
 			data.put(courseID, course);
     	}
 	}
@@ -73,6 +75,47 @@ public class CourseManage {
 			adapterData.add(m);
 		}
 		return adapterData;
-	}	
+	}
+	
+	public String getInfo(){
+		
+		//define
+		double creditSum=0;
+		double creditPassed=0;
+		double divide=0;
+		double GPS=0;
+		double GPA;	
+		
+		//main
+		for (String courseID : data.keySet()) {
+			Course course=data.get(courseID);
+			switch (course.getType()) {
+			case 3:
+				creditSum+=course.getCredit();
+				break;
+			case 1:case 2:
+				creditSum+=course.getCredit();
+				if(course.isPassed()){
+					creditPassed+=course.getCredit();
+				}
+				break;
+			case 0:
+				creditSum+=course.getCredit();
+				if(course.isPassed()){
+					creditPassed+=course.getCredit();
+					divide+=course.getCredit();
+				}
+				GPS+=course.getJd()*course.getCredit();
+			}
+		}
+		
+		//GPA
+		GPA=GPS/divide;
+		DecimalFormat decimalFormat=new DecimalFormat("0.000");
+		
+		//info
+		String info="总学分:"+creditSum+"  已修:"+creditPassed+"  平均绩点:"+decimalFormat.format(GPA);
+		return info;
+	}
 	
 }

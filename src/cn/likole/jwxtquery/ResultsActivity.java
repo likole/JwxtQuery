@@ -67,6 +67,10 @@ public class ResultsActivity extends Activity {
 				data=courseManage.getData();
 				SimpleAdapter adapter=new SimpleAdapter(ResultsActivity.this,data , R.layout.item, new String[]{"name","credit","grade","jd"}, new int[]{R.id.courseName,R.id.xf,R.id.cj,R.id.jd});
 				listView.setAdapter(adapter);
+				try {
+					tv_info.setText(courseManage.getInfo());
+				} catch (Exception e) {
+				}			
 			}
 		}
 	};
@@ -192,50 +196,5 @@ public class ResultsActivity extends Activity {
                 mHandler.sendMessage(msg);
             }
         });
-	}
-
-	
-	private void getInfo() throws Exception {
-		//define
-		int creditSum=0;
-		int creditPassed=0;
-		int divide=0;
-		double GPS=0;
-		double GPA;
-		for (Map<String, String> m : data) {
-			
-			//get data
-			int type=-1;
-			double jd=0;
-			int credit=Integer.parseInt(m.get("credit"));
-			if(m.get("type")!=null){
-				type=Integer.parseInt(m.get("type"));
-			}
-			if(m.get("jd_d")!=null){
-				jd=Double.parseDouble(m.get("jd_d"));
-			}
-
-			//credit
-			creditSum+=credit;
-			if(type==0||type==2){
-				creditPassed+=credit;
-				divide+=credit;
-			}
-			if(type==3){
-				creditPassed+=credit;
-			}
-				
-			//GPA
-			if(type==0||type==2){
-				GPS+=credit*jd;
-			}
-			
-		}
-		
-		//GPA
-		GPA=GPS/divide;
-		DecimalFormat decimalFormat=new DecimalFormat("0.000");
-		String info="总学分:"+creditSum+" 已修读学分:"+creditPassed+" 平均绩点:"+decimalFormat.format(GPA);
-		tv_info.setText(info);
 	}
 }
