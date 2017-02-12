@@ -98,6 +98,27 @@ public class LoginActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 
+	@Override
+	protected void onRestart() {
+		client = new OkHttpClient.Builder()
+				.cookieJar(new CookieJar() {  
+				    private final HashMap<String, List<Cookie>> cookieStore = new HashMap<String, List<Cookie>>();  
+				  
+				    @Override  
+				    public void saveFromResponse(HttpUrl url, List<Cookie> cookies) {  
+				        cookieStore.put(url.host(), cookies);  
+				    }  
+				  
+				    @Override  
+				    public List<Cookie> loadForRequest(HttpUrl url) {  
+				        List<Cookie> cookies = cookieStore.get(url.host());  
+				        return cookies != null ? cookies : new ArrayList<Cookie>();  
+				    }  
+				})
+			    .build();
+		super.onRestart();
+	}
+
 	protected void init() {
 		et_username = (EditText) findViewById(R.id.username);
 		et_password = (EditText) findViewById(R.id.password);
