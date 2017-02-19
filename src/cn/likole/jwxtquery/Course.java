@@ -7,11 +7,12 @@ public class Course {
 
 	/*
 	 * courseName 课程名称 credit 学分 grade 成绩 jd 绩点 passed 及格 unpassed 不及格 type
-	 * 种类（0.默认 1.体育 2.全国英语 3.未发布)
+	 * 种类（0.默认 1.记学分不计绩点 2.不计学分不计绩点 3.未发布4.分数为文字)
 	 */
 	private String courseName;
 	private double credit;
 	private double grade = 0;
+	private String gradeText;
 	private double jd = -1;
 	private boolean passed = false;
 	private boolean unpassed = false;
@@ -114,7 +115,12 @@ public class Course {
 	}
 
 	public void setGrade(String grade) {
-		this.grade = Double.parseDouble(filter(grade));
+		try {
+			this.grade = Double.parseDouble(filter(grade));
+		} catch (Exception e) {
+			this.type = 4;
+			gradeText=grade;
+		}
 	}
 
 	public double getJd() {
@@ -132,17 +138,17 @@ public class Course {
 	public void unpassed() {
 		unpassed = true;
 	}
-	
-	public void unpublish() {
-		type=3;
-	}
 
-	public void setUnpassed(boolean unpassed) {
-		this.unpassed = unpassed;
+	public void unpublish() {
+		type = 3;
 	}
 
 	public int getType() {
 		return type;
+	}
+
+	public String getGradeText() {
+		return gradeText;
 	}
 
 	/*

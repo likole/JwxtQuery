@@ -64,7 +64,9 @@ public class CourseManage {
 			Map<String, String> m=new HashMap<String, String>();
 			m.put("name", course.getCourseName());
 			m.put("credit", String.valueOf(course.getCredit()));
-			if(course.getType()==3){
+			if(course.getType()==4){
+				m.put("grade", course.getGradeText());
+			}else if(course.getType()==3){
 				m.put("grade", "未发布");
 			}else{
 				m.put("grade", String.valueOf(course.getGrade()));
@@ -90,6 +92,12 @@ public class CourseManage {
 		for (String courseID : data.keySet()) {
 			Course course=data.get(courseID);
 			switch (course.getType()) {
+			case 4:
+				creditSum+=course.getCredit();
+				if(course.isPassed()){
+					creditPassed+=course.getCredit();
+				}
+				break;
 			case 3:
 				creditSum+=course.getCredit();
 				break;
